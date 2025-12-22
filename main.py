@@ -427,8 +427,7 @@ def write_to_Excel(df):
 
     idx_total = df.columns.get_loc("Oblačnost")
     for r in range(len(df)):
-        date_str = (datetime.strptime(df.iloc[r]["Datum"], "%d.%m.%Y") - timedelta(days=7)).strftime("%d.%m.%Y")
-        #date_str = df.iloc[r]["Datum"]
+        date_str = df.iloc[r]["Datum"]
         hour = df.iloc[r]["Nejvyšší poloha"][:2]
 
         key = datetime.strptime(
