@@ -197,8 +197,10 @@ def fetch_weather():
             total = extract_clouds("Total Clouds") 
             low = extract_clouds("Low Clouds") 
             medium = extract_clouds("Medium Clouds") 
-            high = extract_clouds("High Clouds") 
-            for hour in range(24): 
+            high = extract_clouds("High Clouds")
+            
+            data_len=min([len(ratings),len(total),len(low),len(medium),len(high)])
+            for hour in range(data_len):
                 dt = current_date.replace(hour=hour) 
                 key = dt.strftime("%Y-%m-%d %H:00") 
                 forecast[key] = { "rating": ratings[hour], "total_clouds": total[hour], "low_clouds": low[hour], "medium_clouds": medium[hour], "high_clouds": high[hour], } 
@@ -463,4 +465,5 @@ if __name__ == "__main__":
 
     df=pd.DataFrame(table[1:],columns=columns)
     write_to_csv(df)
+
     write_to_Excel(df)
