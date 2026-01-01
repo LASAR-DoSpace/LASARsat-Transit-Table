@@ -145,9 +145,17 @@ def pass_page(link,tag):
 
     classification="A+B"
 
-    if shadow_obj>(t_max_obj+timedelta(minutes=1)):
-        classification="A"
-    elif shadow_obj<t10_s_obj:
+    if 'shadow_entry' in events:
+        if shadow_obj<t10_s_obj:
+            classification="B"
+        elif shadow_obj>t10_e_obj:
+            classification="A"
+    elif 'shadow_exit' in events:
+        if shadow_obj<t10_s_obj:
+            classification="A"
+        elif shadow_obj>t10_e_obj:
+            classification="B"
+    elif tag=='night (unlit)':
         classification="B"
 
     priority=""
