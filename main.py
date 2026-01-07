@@ -17,7 +17,7 @@ event_map = {
     "Sets": "end_0"
 }
 columns=[
-    "Datum","Max výška","Doba nad 10°","Doba nad 0°","Vychází","Dosahuje 10°","Nejvyšší poloha","Klesne pod 10°","Zapadá","Výška při stínu","Čas stínu","Výška Slunce","Scénář","Priorita", "Oblačnost","Nízká","Střední","Vysoká"]
+    "Datum","Max výška","Doba nad 10°","Osvětleno nad 10°","Vychází","Dosahuje 10°","Nejvyšší poloha","Klesne pod 10°","Zapadá","Výška při stínu","Čas stínu","Výška Slunce","Scénář","Priorita", "Oblačnost","Nízká","Střední","Vysoká"]
 
 session = requests.Session()
 
@@ -137,8 +137,16 @@ def pass_page(link,tag):
         return ""
 
     delta_t10=calc_delta('start_10', 'end_10')
-    delta_t0=calc_delta('start_0', 'end_0')
-
+    delta_t10_sunlight="-"
+    
+    if 'shadow_entry' in events:
+        delta_t10_sunlight_seconds=np.minimum(np.maximum(calc_delta('start_10', 'shadow_entry',in_seconds=True),0),calc_delta('start_10', 'end_10',in_seconds=True))
+        delta_t10_sunlight=f"{delta_t10_sunlight_seconds//60:02d}:{delta_t10_sunlight_seconds%60:02d}"
+    elif 'shadow_exit' in events:
+        delta_t10_sunlight_seconds=np.minimum(np.maximum(calc_delta('shadow_exit', 'end_10',in_seconds=True),0),calc_delta('start_10', 'end_10',in_seconds=True))
+        delta_t10_sunlight=f"{delta_t10_sunlight_seconds//60:02d}:{delta_t10_sunlight_seconds%60:02d}"
+    else:
+        delta_t10_sunlight="00:00"
 
     avg_sun_height=f"{np.mean(SunHeights):.1f}°"
 
@@ -170,7 +178,7 @@ def pass_page(link,tag):
         priority="4"
 
 
-    return [date,max_height,delta_t10,delta_t0,t0_s,t10_s,t_max,t10_e,t0_e,shadow_height,shadow_time,avg_sun_height,classification,priority]
+    return [date,max_height,delta_t10,delta_t10_sunlight,t0_s,t10_s,t_max,t10_e,t0_e,shadow_height,shadow_time,avg_sun_height,classification,priority]
 
 def fetch_weather():
     forecast={}
@@ -242,7 +250,20 @@ def create_table(links,tags,forecast):
                 row.extend(["", "", "", ""])
 
             table.append(row)
-    return table
+
+    counter={}
+    format_table=[]
+
+    for row in table[1:]:
+        dt=datetime.strptime(row[0],"%d.%m.%Y")
+        key=dt.strftime("%Y%m%d")
+
+        if key not in counter:
+            counter[key]=0
+        counter[key]+=1
+        format_table.append([f"{key}--{counter[key]:02d}"]+row[1:])
+
+    return format_table
 
 def write_to_csv(df):
     df.to_csv("Prelety.csv")
@@ -277,9 +298,9 @@ def write_to_Excel(df):
 
     col_widths = {
         0: 11.5,   
-        1: 11.5, 2: 11.5, 3: 11.5,
+        1: 11.5, 2: 11.5, 3: 15.8,
         4: 13.5, 5: 13.5, 6: 13.5, 7: 13.5, 8: 13.5,
-        9: 12.5, 10: 12.5,
+        9: 12.5, 10: 8,
         11: 12,
         12: 7, 13: 7,
         14: 9, 15: 9, 16: 9, 17: 9
@@ -441,8 +462,8 @@ def write_to_Excel(df):
         hour = df.iloc[r]["Nejvyšší poloha"][:2]
 
         key = datetime.strptime(
-            f"{date_str} {hour}",
-            "%d.%m.%Y %H"
+            f"{date_str[:8]} {hour}",
+            "%Y%m%d %H"
         ).strftime("%Y-%m-%d %H:00")
 
         rating = forecast.get(key, {}).get("rating")
@@ -455,7 +476,19 @@ def write_to_Excel(df):
         elif rating == "bad":
             worksheet.write(r + 1, idx_total, val, fmt_bad)
 
+    fmt_sep = workbook.add_format({'top': 2})
+    fmt_sep_right = workbook.add_format({'top': 2, 'right': 2})
 
+    thick_right_cols = [0, 3, 8, 10, 11, 13]
+
+    for col in range(len(df.columns)):
+        current_fmt = fmt_sep_right if col in thick_right_cols else fmt_sep
+
+        worksheet.conditional_format(1, col, len(df), col, {
+            'type':     'formula',
+            'criteria': '=RIGHT($A2,4)="--01"',
+            'format':   current_fmt
+        })
 
     worksheet.freeze_panes(1, 0)
     for col_num, value in enumerate(df.columns):
@@ -471,7 +504,7 @@ if __name__ == "__main__":
     table=create_table(links,tags,forecast)
 
 
-    df=pd.DataFrame(table[1:],columns=columns)
+    df=pd.DataFrame(table,columns=columns)
     write_to_csv(df)
 
     write_to_Excel(df)
