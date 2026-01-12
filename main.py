@@ -78,6 +78,17 @@ def pass_page(link,tag):
             return []
         if event_name in event_map:
             key=event_map[event_name]
+            if key=="max" and height=="10°":
+                events["start_10"]={
+                    "time_str":time,
+                    "time_obj": datetime.strptime(time, "%H:%M:%S"),
+                    "height":height
+                }
+                events["end_10"]={
+                    "time_str":time,
+                    "time_obj": datetime.strptime(time, "%H:%M:%S"),
+                    "height":height
+                }
             events[key]={
                 "time_str":time,
                 "time_obj": datetime.strptime(time, "%H:%M:%S"),
@@ -508,3 +519,4 @@ if __name__ == "__main__":
     write_to_csv(df)
 
     write_to_Excel(df)
+
