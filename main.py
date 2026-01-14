@@ -139,6 +139,8 @@ def pass_page(link,tag):
         if t1 and t2:
             diff = t2 - t1
             total_seconds = int(diff.total_seconds())
+            if start_key=='start_10' and end_key=='end_10' and total_seconds<0:
+                total_seconds+=86400
             minutes = total_seconds // 60
             seconds = total_seconds % 60
             if in_seconds:
@@ -519,4 +521,3 @@ if __name__ == "__main__":
     write_to_csv(df)
 
     write_to_Excel(df)
-
