@@ -1,0 +1,16 @@
+[
+  {
+    "name": "HaP_Teplice",
+    "loc_param": "HaP+Teplice",
+    "lat": 50.638328,
+    "lng": 13.846724,
+    "alt": 275
+  },
+  {
+    "name": "Izana",
+    "loc_param": "Izana",
+    "lat": 28.3000,
+    "lng": -16.5106,
+    "alt": 2380
+  }
+]

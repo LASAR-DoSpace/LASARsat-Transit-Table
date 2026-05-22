@@ -32,4 +32,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Daily Satellite Data Update"
-          file_pattern: "Prelety.xlsx"
+          file_pattern: "output/*"

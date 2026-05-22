@@ -1,11 +1,11 @@
+import os
+import json
 import pandas as pd
 import numpy as np
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime,timedelta
 
-url = "https://heavens-above.com/PassSummary.aspx?satid=62391&lat=50.638328&lng=13.846724&loc=HaP+Teplice&alt=275&tz=UCT&showall=t&next=t"
-weather_url = "https://clearoutside.com/forecast/50.64/13.85?view=midnight"
 
 event_map = {
     "Rises": "start_0",
@@ -21,7 +21,7 @@ columns=[
 
 session = requests.Session()
 
-def get_links():
+def get_links(url):
     links=[]
     tags=[]
 
@@ -193,7 +193,7 @@ def pass_page(link,tag):
 
     return [date,max_height,delta_t10,delta_t10_sunlight,t0_s,t10_s,t_max,t10_e,t0_e,shadow_height,shadow_time,avg_sun_height,classification,priority]
 
-def fetch_weather():
+def fetch_weather(weather_url):
     forecast={}
     req=requests.get(weather_url) 
     if req.status_code==200:
@@ -278,12 +278,12 @@ def create_table(links,tags,forecast):
 
     return format_table
 
-def write_to_csv(df):
-    df.to_csv("Prelety.csv")
-    print("Saved to Prelety.csv")
+def write_to_csv(df,csv_path):
+    df.to_csv(csv_path)
+    print(f"Saved to {csv_path}")
 
-def write_to_Excel(df):
-    writer = pd.ExcelWriter("Prelety.xlsx", engine='xlsxwriter')
+def write_to_Excel(df,excel_path):
+    writer = pd.ExcelWriter(excel_path, engine='xlsxwriter')
     workbook = writer.book
 
     df["Výška Slunce"] = df["Výška Slunce"].astype(str).str.replace("°", "").str.replace(",", ".").replace("", "0").astype(float)
@@ -512,12 +512,21 @@ def write_to_Excel(df):
 
 
 if __name__ == "__main__":
-    links,tags=get_links()
-    forecast=fetch_weather()
-    table=create_table(links,tags,forecast)
+    SAT_ID = 62391
+    os.makedirs("output", exist_ok=True)
 
+    with open("locations.json", "r") as f:
+        locations = json.load(f)
 
-    df=pd.DataFrame(table,columns=columns)
-    write_to_csv(df)
+    for loc in locations:
+        url =f"https://heavens-above.com/PassSummary.aspx?satid={SAT_ID}&lat={loc['lat']}&lng={loc['lng']}&loc={loc['loc_param']}&alt={loc['alt']}&tz=UCT&showall=t&next=t"
+        weather_url = f"https://clearoutside.com/forecast/{loc['lat']:.2f}/{loc['lng']:.2f}?view=midnight"
 
-    write_to_Excel(df)
+        links,tags=get_links(url)
+        forecast=fetch_weather(weather_url)
+
+        if links:
+            table=create_table(links,tags,forecast)
+            df=pd.DataFrame(table,columns=columns)
+            write_to_csv(df, f"output/{loc['name']}.csv")
+            write_to_Excel(df, f"output/{loc['name']}.xlsx")
