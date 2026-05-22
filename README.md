@@ -17,10 +17,10 @@ The transit tables are automatically generated every morning to ensure the most 
 *(Clicking a link below will immediately download the latest version generated this morning).*
 
 ### 📍 HaP Teplice
-[👉 **Download Teplice Report (.xlsx)**](https://github.com/Al33xF/LASARsat-Transit-Table/raw/main/output/HaP_Teplice_Prelety.xlsx)
+[👉 **Download Teplice Report (.xlsx)**](https://github.com/LASAR-DoSpace/LASARsat-Transit-Table/raw/main/output/HaP_Teplice.xlsx)
 
 ### 📍 Izaña station
-[👉 **Download Izaña Report (.xlsx)**](https://github.com/Al33xF/LASARsat-Transit-Table/raw/main/output/Izana_Prelety.xlsx)
+[👉 **Download Izaña Report (.xlsx)**](https://github.com/LASAR-DoSpace/LASARsat-Transit-Table/raw/main/output/Izana.xlsx)
 
 ---
 
