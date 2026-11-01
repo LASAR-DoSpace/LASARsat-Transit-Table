@@ -1,6 +1,6 @@
+skyfield
 pandas
 numpy
 requests
 beautifulsoup4
 xlsxwriter
-lxml

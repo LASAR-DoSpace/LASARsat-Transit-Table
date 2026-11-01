@@ -5,7 +5,6 @@ on:
     - cron: '15 2 * * *'
   workflow_dispatch:
 
-# Give the bot permission to write the Excel file back to the repo
 permissions:
   contents: write
 
@@ -15,12 +14,19 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Cache Skyfield Ephemeris
+        uses: actions/cache@v4
+        with:
+          path: de421.bsp
+          key: skyfield-de421
 
       - name: Install dependencies
         run: pip install -r requirements.txt
@@ -28,8 +34,14 @@ jobs:
       - name: Run generation script
         run: python main.py
 
-      - name: Commit and Push changes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "Daily Satellite Data Update"
-          file_pattern: "output/*"
+      - name: Push results to data branch
+        run: |
+          cd output
+          git init
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b data
+          git add -A
+          git commit -m "Daily Satellite Data Update [$(date -u +'%Y-%m-%d %H:%M UTC')]"
+          git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git push --force origin data
